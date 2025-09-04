@@ -3,6 +3,7 @@ package sacn
 import (
 	"fmt"
 	"net"
+	"slices"
 	"time"
 )
 
@@ -162,6 +163,37 @@ func (t *Transmitter) SetDestinations(universe uint16, destinations []string) []
 		newDest = append(newDest, *addr)
 	}
 	t.destinations[universe] = newDest
+
+	if len(errs) == 0 {
+		return nil
+	}
+	return errs
+}
+
+// AddDestinations adds a slice of destinations for the universe that is used for sending out.
+func (t *Transmitter) AddDestinations(universe uint16, destinations []string) []error {
+	newDest := make([]net.UDPAddr, 0)
+	errs := make([]error, 0)
+
+	for _, dest := range destinations {
+		if dest == "" {
+			continue // continue if the string is empty
+		}
+
+		if slices.ContainsFunc(t.destinations[universe], func(s net.UDPAddr) bool {
+			return dest == s.String()
+		}) {
+			continue
+		}
+
+		addr, err := net.ResolveUDPAddr("udp", dest+":5568")
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+		newDest = append(newDest, *addr)
+	}
+	t.destinations[universe] = append(t.destinations[universe], newDest...)
 
 	if len(errs) == 0 {
 		return nil
