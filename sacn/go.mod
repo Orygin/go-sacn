@@ -1,5 +1,7 @@
 module github.com/orygin/go-sacn/sacn
 
-go 1.21
+go 1.23.0
 
-require golang.org/x/net v0.0.0-20221002022538-bcab6841153b
+toolchain go1.24.7
+
+require golang.org/x/net v0.43.0
